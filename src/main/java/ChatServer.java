@@ -28,7 +28,21 @@ public class ChatServer extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         if (message.startsWith("/login")) {
-            String username = message.split(" ", 2)[1];
+            handleLogin(conn, message);
+        } else {
+            User sender = getUserByConnection(conn);
+            if (sender != null) {
+                Message msg = new Message(sender.getUsername(), message);
+                messageHistory.add(msg);
+                broadcast(gson.toJson(msg));
+                System.out.println("Сообщение от " + sender.getUsername() + ": " + message);
+            }
+        }
+    }
+
+    private void handleLogin(WebSocket conn, String message) {
+        String username = message.split(" ", 2)[1];
+        if (getUserByUsername(username) == null) {
             users.add(new User(username, conn));
             conn.send("Добро пожаловать, " + username);
             broadcast(username + " присоединился к чату.");
@@ -39,13 +53,7 @@ public class ChatServer extends WebSocketServer {
                 conn.send(gson.toJson(msg));
             }
         } else {
-            User sender = getUserByConnection(conn);
-            if (sender != null) {
-                Message msg = new Message(sender.getUsername(), message);
-                messageHistory.add(msg);
-                broadcast(gson.toJson(msg));
-                System.out.println("Сообщение от " + sender.getUsername() + ": " + message);
-            }
+            conn.send("Пользователь с таким именем уже существует.");
         }
     }
 
@@ -88,6 +96,15 @@ public class ChatServer extends WebSocketServer {
     private User getUserByConnection(WebSocket conn) {
         for (User user : users) {
             if (user.getConnection().equals(conn)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    private User getUserByUsername(String username) {
+        for (User user : users) {
+            if (user.getUsername().equals(username)) {
                 return user;
             }
         }

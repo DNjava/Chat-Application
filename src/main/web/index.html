@@ -4,62 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Application</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="loginBox">
-    <input id="usernameInput" type="text" placeholder="Введите ваше имя...">
-    <button onclick="login()">Войти</button>
+<div id="loginPage" class="page">
+    <h2>Login</h2>
+    <input type="text" id="usernameInput" placeholder="Enter your username">
+    <button onclick="login()">Login</button>
 </div>
-<div id="chatBox" style="display: none;">
-    <ul id="messages"></ul>
-    <input id="messageInput" type="text" placeholder="Введите сообщение...">
-    <button onclick="sendMessage()">Отправить</button>
+<div id="chatPage" class="page" style="display:none;">
+    <h2>Chat</h2>
+    <div id="chatBox" class="chat-box"></div>
+    <input type="text" id="messageInput" placeholder="Enter your message">
+    <button onclick="sendMessage()">Send</button>
 </div>
-
-<script>
-    let socket;
-    let username;
-
-    function login() {
-        username = document.getElementById('usernameInput').value;
-        if (username) {
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('chatBox').style.display = 'block';
-            startChat();
-        }
-    }
-
-    function startChat() {
-        socket = new WebSocket('ws://localhost:8887');
-
-        socket.onopen = () => {
-            console.log('Соединение установлено');
-            socket.send('/login ' + username);
-        };
-
-        socket.onmessage = (event) => {
-            const messages = document.getElementById('messages');
-            const message = document.createElement('li');
-            const data = JSON.parse(event.data);
-            message.textContent = data.sender + ": " + data.content;
-            messages.appendChild(message);
-        };
-
-        socket.onclose = () => {
-            console.log('Соединение закрыто');
-        };
-
-        socket.onerror = (error) => {
-            console.error('Ошибка: ', error);
-        };
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('messageInput');
-        const message = input.value;
-        socket.send(message);
-        input.value = '';
-    }
-</script>
+<script src="chat.js"></script>
 </body>
 </html>
